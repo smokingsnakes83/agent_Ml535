@@ -58,10 +58,10 @@ Criar um chatbot que responde a perguntas do usuário sobre Mises e a Escola Aus
 **Entrada de usuário**: O chatbot captura a entrada do usuário por meio de um campo de texto (st.chat_input).<br>
 **Geração de resposta**: O código utiliza o modelo de linguagem genai.GenerativeModel para gerar uma resposta com base na consulta do usuário e em um contexto de dados fornecido.<br>
 **Exibição de respostas**: O chatbot exibe as respostas geradas pelo modelo de linguagem na interface do usuário, simulando uma conversa natural.<br>
-## **Utilização**:
-**O código utiliza as seguintes bibliotecas**:<br>
-**streamlit**: Para criar a interface web do chatbot.
-genai: Para a geração de texto com o modelo de linguagem gemini-1.5-pro-latest.<br>
+## **Bibliotecas**:
+### **Agent M|535 utiliza as seguintes bibliotecas**:<br>
+**streamlit**: Para criar a interface web do chatbot.<br>
+**google.generativeai** : Para a geração de texto com o modelo de linguagem gemini-1.5-pro-latest.<br>
 ### **Parâmetros**:
 **df**: DataFrame contendo os dados relevantes sobre Mises e a Escola Austríaca de Economia.<br>
 **gen_model**: Objeto genai.GenerativeModel configurado para o modelo gemini-1.5-pro-latest.<br>
