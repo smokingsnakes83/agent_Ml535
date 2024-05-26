@@ -1,4 +1,5 @@
-# **Agent M|535**
+![Agent M|535](https://github.com/smokingsnakes83/agent_Ml535/blob/main/assets/asset1.png?raw=true)
+
 ## **Objetivo**:
 Criar um chatbot que responde a perguntas do usuário sobre Mises e a Escola Austríaca de Economia, utilizando um modelo de linguagem de grandes dimensões.
 ### **Funcionalidades**:
