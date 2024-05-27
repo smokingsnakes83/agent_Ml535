@@ -38,6 +38,4 @@ A função input_user_query é chamada para processar a consulta, gerar a respos
 A resposta é exibida na interface do usuário.<br>
 A resposta é adicionada ao histórico de mensagens.
 
-## **Exemplo de uso:**
->>> You: O que é a Escola Austríaca de Economia?<br><br>
->>> Agent M|535: A Escola Austríaca de Economia é uma escola de pensamento econômico que se concentra no individualismo metodológico, na ação humana e nos mercados livres.
+![Agent M|535](https://drive.google.com/file/d/1Fz1DGiKuI9zX1mNy4JGOl1cSshTfnl7X/view?usp=sharing)
