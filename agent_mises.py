@@ -3,11 +3,7 @@ import numpy as np
 import google.generativeai as genai
 import textwrap
 import streamlit as st
-import time
-import random
 
-# Used to securely store your API key
-#from google.colab import userdata
 
 from IPython.display import Markdown
 from IPython.display import display
@@ -18,35 +14,29 @@ def to_markdown(text):
     return Markdown(textwrap.indent(text, "> ", predicate=lambda _: True))
 
 
-# Obtém a chave de API a partir dos dados do usuário
-#API_KEY = userdata.get("API_KEY")
-API_KEY = 'AIzaSyAed_zI7Kg2_6wrNuXmkFb1lAN85qEVV3g'
-# Configura a biblioteca genai com a chave de API obtida
-genai.configure(api_key=API_KEY)  # Substitua pela sua API_KEY
+# Configures the genai library with the obtained API key
+API_KEY = 'YOUR_API_HERE'
+genai.configure(api_key=API_KEY) 
 
-# Carrega o arquivo CSV em um dataframe pandas
+# Load the CSV file into a pandas dataframe
 df = pd.read_csv('documents.csv')
 # df
 
-# **Model**
-
-# Definindo o modelo na variável model
+# Defining the model in the model variable
 embed_model = "models/embedding-001"
 
-# **Função que Gera Embeddings para os Documentos**
-
-
+# Function that generates embeddings for documents
 def embed_doc(title, content):
-    """
-    Gera embeddings para documentos usando o modelo especificado.
+    ''''
+    Generates embeddings for documents using the specified template.
 
     Args:
-        title: O título do documento.
-        content: O corpo do conteúdopdo documento.
+        title: The title of the document.
+        content: The body of the document's content.
 
     Returns:
-        Um vetor de embedding representando o documento.
-    """
+        An embedding vector representing the document.
+    '''
 
     return genai.embed_content(
         model=embed_model, 
@@ -55,28 +45,26 @@ def embed_doc(title, content):
         title=title)["embedding"]
 
 
-# Aplica a função embed_doc a cada linha do dataframe
+# Apply the embed_doc function to each row of the dataframe
 df["Embeddings"] = df.apply(lambda row: embed_doc(row["Title"], row["Content"]), axis=1)
 
-# Exibe o dataframe com a nova coluna 'Embeddings'
 # df
 
-# **Função que gera embeddings das consultas**
-
+# Function that generates query embeddings
 
 def embed_querry(query, base, model, limit=0.6):
-    """
-    Gera uma consulta semântica e retorna a informação correspondente no dataframe.
+    '''
+    Generates a semantic query and returns the corresponding information in the dataframe.
 
     Args:
-        query: A consulta do usuário.
-        base: O dataframe contendo os embeddings e as informações.
-        model: O modelo de embedding.
-        limite: Limite de similaridade para considerar uma resposta válida.
+        query: The user's query.
+        base: The dataframe containing the embeddings and information.
+        model: The embedding model.
+        threshold: Similarity threshold to consider a valid answer.
 
     Returns:
-        A informação correspondente à consulta ou uma mensagem de erro caso a similaridade seja insuficiente.
-    """
+        The information corresponding to the query or an error message if the similarity is insufficient.
+    '''
 
     query_embed = genai.embed_content(
         model=model, content=query, 
@@ -85,12 +73,12 @@ def embed_querry(query, base, model, limit=0.6):
     dot_products = np.dot(np.stack(df["Embeddings"]), query_embed)
     idx = np.argmax(dot_products)
 
-    # Calcula a similaridade do cosseno
+    # Calculate cosine similarity
     similarity = dot_products[idx] / (
         np.linalg.norm(query_embed) * np.linalg.norm(base["Embeddings"][idx])
     )
 
-    # Verificar se a maior similaridade está acima do limite
+    # Check if the highest similarity is above the limit
     if similarity >= limit:
         print("\nsimilarity:", similarity)
         return df.iloc[idx]["Content"]
@@ -98,7 +86,7 @@ def embed_querry(query, base, model, limit=0.6):
         print("\nsimilarity:", similarity)
 
 
-# **Configurações e Parametrização do modelo**
+# Model configurations and parameterization
 
 gen_config = {
     "candidate_count": 1,
@@ -114,8 +102,8 @@ safety_config = {
     "dangerous": "block_none",
 }
 
-# **Consulta**
-st.title('Agent M|535')
+# Agent M|535
+st.title('Agent M|535', anchor=None)
 
 def  chat_history(messages):
     for message in messages:
@@ -124,39 +112,40 @@ def  chat_history(messages):
 
 def input_user_query(user_query, df, gen_model, embed_model):
     passage = embed_querry(user_query, df, embed_model)
-    prompt = f'''Voce é M|535 um agente expecialista em Mises e escola Austriaca de economia. Reescreva estes dados. 
+    prompt = f'''Voce é M|535 um agente expecialista em Mises e escola Austriaca de economia. Reescreva estes texto que vc aprendeu. 
                 Você responderá sobre {query} com o que você aprendeu com este dados.
                 Sua resposta deverá ser de fácil entendimento.  {passage}'''      
-    response = gen_model.generate_content(prompt)
+    response = gen_model.generate_content(prompt, stream=True)
+    response.resolve()
     return response.text 
 
-# Inicialização do histórico de mensagens
+# Message history initialization
 if 'messages' not in st.session_state:
     st.session_state.messages = []
 
-# Exibe o histórico de mensagens    
+# Display message history 
 chat_history(st.session_state.messages)
 
-# Captura a consulta do usuário
+# Capture user query
 query = st.chat_input('Ask Agent M|535')
 if query:
-    with st.chat_message('You'):
+    with st.chat_message(name='You'):
         st.markdown(query)
     
-    # Adiciona a consulta ao histórico    
+    # Add the query to the history  
     st.session_state.messages.append({"role": "user", "content": query})
 
-    # Configura o modelo de geração 
+    # Configure the generative model 
     gen_model = genai.GenerativeModel('gemini-1.5-pro-latest',
                                         generation_config=gen_config,
                                         safety_settings=safety_config)
 
-    # Processa a consulta e obtém a resposta
+    # Process the query and get the response
     response = input_user_query(query, df, gen_model, embed_model)
 
-    # Exibe a resposta
-    with st.chat_message('ai'):
+    # Display the response
+    with st.chat_message(avatar='assets/bot.png', name='Agent M|535'):
         st.markdown(response)
     
-    # Adiciona a resposta ao histórico    
+    # Add the answer to the history    
     st.session_state.messages.append({"role": "assistant", "content": response})    
