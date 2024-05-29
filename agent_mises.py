@@ -15,7 +15,7 @@ def to_markdown(text):
 
 
 # Configures the genai library with the obtained API key
-API_KEY = 'YOUR_API_HERE'
+API_KEY = 'AIzaSyAed_zI7Kg2_6wrNuXmkFb1lAN85qEVV3g' # 'YOUR_API_HERE'
 genai.configure(api_key=API_KEY) 
 
 # Load the CSV file into a pandas dataframe
@@ -103,8 +103,6 @@ safety_config = {
 }
 
 # Agent M|535
-st.title('Agent M|535', anchor=None)
-
 def  chat_history(messages):
     for message in messages:
         with st.chat_message(message['role']):
@@ -149,3 +147,9 @@ if query:
     
     # Add the answer to the history    
     st.session_state.messages.append({"role": "assistant", "content": response})    
+
+with st.sidebar:
+    st.image('assets/cracha.png', caption='Agent M|535')
+        
+
+        
