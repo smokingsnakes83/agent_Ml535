@@ -3,19 +3,16 @@ import numpy as np
 import google.generativeai as genai
 import textwrap
 import streamlit as st
+import os
 
 
 from IPython.display import Markdown
 from IPython.display import display
-
-
-def to_markdown(text):
-    text = text.replace("•", "  *")
-    return Markdown(textwrap.indent(text, "> ", predicate=lambda _: True))
-
+from dotenv import load_dotenv
 
 # Configures the genai library with the obtained API key
-API_KEY = 'AIzaSyAed_zI7Kg2_6wrNuXmkFb1lAN85qEVV3g' # 'YOUR_API_HERE'
+load_dotenv()
+API_KEY = os.getenv('GOOGLE_API_KEY') # 'REPLACE_BY_YOUR_API_HERE'
 genai.configure(api_key=API_KEY) 
 
 # Load the CSV file into a pandas dataframe
@@ -24,6 +21,11 @@ df = pd.read_csv('documents.csv')
 
 # Defining the model in the model variable
 embed_model = "models/embedding-001"
+
+#Function to format output to markdown text format
+def to_markdown(text):
+    text = text.replace("•", "  *")
+    return Markdown(textwrap.indent(text, "> ", predicate=lambda _: True))
 
 # Function that generates embeddings for documents
 def embed_doc(title, content):
@@ -80,10 +82,17 @@ def embed_querry(query, base, model, limit=0.6):
 
     # Check if the highest similarity is above the limit
     if similarity >= limit:
-        print("\nsimilarity:", similarity)
-        return df.iloc[idx]["Content"]
+        print('\nsimilarity:', similarity)
+        return df.iloc[idx]['Content']
+
+    elif similarity > 0.6:
+        print('\nsimilarity:', similarity)
+        return f"You must respond by optic  Mises's and the Economy Austrian School's "
+
     else:
-        print("\nsimilarity:", similarity)
+        print('\nsimilarity:', similarity)
+        return f'''You must Respond with the following fallback: "Isso está alem do meu conhecimento,"
+                não fui treinado para este tema'''
 
 
 # Model configurations and parameterization
@@ -91,8 +100,7 @@ def embed_querry(query, base, model, limit=0.6):
 gen_config = {
     "candidate_count": 1,
     "temperature": 0.3,
-    # 'top_k':1,
-    # 'top_p':1
+    'top_p': 0.95
 }
 
 safety_config = {
@@ -131,7 +139,7 @@ if query:
         st.markdown(query)
     
     # Add the query to the history  
-    st.session_state.messages.append({"role": "user", "content": query})
+    st.session_state.messages.append({"role": "You", "content": query})
 
     # Configure the generative model 
     gen_model = genai.GenerativeModel('gemini-1.5-pro-latest',
@@ -146,7 +154,7 @@ if query:
         st.markdown(response)
     
     # Add the answer to the history    
-    st.session_state.messages.append({"role": "assistant", "content": response})    
+    st.session_state.messages.append({"role": "M|535", "content": response})    
 
 with st.sidebar:
     st.image('assets/cracha.png', caption='Agent M|535')
