@@ -16,7 +16,7 @@ API_KEY = os.getenv('GOOGLE_API_KEY') # 'REPLACE_BY_YOUR_API_HERE'
 genai.configure(api_key=API_KEY) 
 
 # Load the CSV file into a pandas dataframe
-df = pd.read_csv('documents.csv')
+df = pd.read_csv('data_store.csv')
 # df
 
 # Defining the model in the model variable
@@ -87,7 +87,7 @@ def embed_querry(query, base, model, limit=0.6):
 
     elif similarity > 0.6:
         print('\nsimilarity:', similarity)
-        return f"You must respond by optic  Mises's and the Economy Austrian School's "
+        return f"You must respond by optic Mises's and the Economy Austrian School's "
 
     else:
         print('\nsimilarity:', similarity)
@@ -99,7 +99,7 @@ def embed_querry(query, base, model, limit=0.6):
 
 gen_config = {
     "candidate_count": 1,
-    "temperature": 0.3,
+    "temperature": 0.5,
     'top_p': 0.95
 }
 
@@ -111,12 +111,36 @@ safety_config = {
 }
 
 # Agent M|535
+
 def  chat_history(messages):
+    """
+    Displays a chat history in a Streamlit application.
+
+    Args:
+        messages (list): A list of dictionaries, where each dictionary represents a message.
+            Each dictionary should have the following keys:
+                * role (str): The role of the sender (e.g., "You", "Agent M|535").
+                * content (str): The content of the message.
+    """
+    
     for message in messages:
         with st.chat_message(message['role']):
             st.markdown(message['content'])
 
 def input_user_query(user_query, df, gen_model, embed_model):
+    """
+    Processes a user query, embeds it, generates a response using a language model, and returns the response.
+
+    Args:
+    user_query: The user's input query as a string.
+    df: A Pandas DataFrame containing relevant data for the query.
+    gen_model: A language model object capable of generating text.
+    embed_model: An embedding model used to embed the user query.
+
+    Returns:
+    A string representing the generated response to the user query.
+    """
+    
     passage = embed_querry(user_query, df, embed_model)
     prompt = f'''Voce é M|535 um agente expecialista em Mises e escola Austriaca de economia. Reescreva estes texto que vc aprendeu. 
                 Você responderá sobre {query} com o que você aprendeu com este dados.
