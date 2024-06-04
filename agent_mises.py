@@ -1,13 +1,9 @@
 import pandas as pd
 import numpy as np
 import google.generativeai as genai
-import textwrap
 import streamlit as st
 import os
 
-
-from IPython.display import Markdown
-from IPython.display import display
 from dotenv import load_dotenv
 
 # Configures the genai library with the obtained API key
@@ -20,12 +16,7 @@ df = pd.read_csv('data_store.csv')
 # df
 
 # Defining the model in the model variable
-embed_model = "models/embedding-001"
-
-#Function to format output to markdown text format
-def to_markdown(text):
-    text = text.replace("•", "  *")
-    return Markdown(textwrap.indent(text, "> ", predicate=lambda _: True))
+embed_model = "models/text-embedding-004"
 
 # Function that generates embeddings for documents
 def embed_doc(title, content):
@@ -142,9 +133,11 @@ def input_user_query(user_query, df, gen_model, embed_model):
     """
     
     passage = embed_querry(user_query, df, embed_model)
-    prompt = f'''Voce é M|535 um agente expecialista em Mises e escola Austriaca de economia. Reescreva estes texto que vc aprendeu. 
-                Você responderá sobre {query} com o que você aprendeu com este dados.
-                Sua resposta deverá ser de fácil entendimento.  {passage}'''      
+    prompt = f'''Voce é M|535 um agente expecialista em Mises e escola Austriaca de economia. Reescreva estes dados.
+            Você responderá sobre {query} com o que você aprendeu com este dados.
+            Sua resposta deverá ser de fácil entendimento. {passage}
+            Sempre responda uma saudação do usúario com cordialidade'''
+    
     response = gen_model.generate_content(prompt, stream=True)
     response.resolve()
     return response.text 
