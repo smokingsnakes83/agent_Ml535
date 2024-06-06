@@ -76,14 +76,15 @@ def embed_querry(query, base, model, limit=0.6):
         print('\nsimilarity:', similarity)
         return df.iloc[idx]['Content']
 
-    elif similarity > 0.6:
+    elif similarity > 0.5:
         print('\nsimilarity:', similarity)
         return f"You must respond by optic Mises's and the Economy Austrian School's "
 
     else:
         print('\nsimilarity:', similarity)
         return f'''You must Respond with the following fallback: "Isso está alem do meu conhecimento,"
-                não fui treinado para este tema'''
+                não fui treinado para este tema.
+                Você deve sugerir algumas perguntas relacionada Mises, Economia e Escola Autriaca de Economia.'''
 
 
 # Model configurations and parameterization
@@ -102,7 +103,6 @@ safety_config = {
 }
 
 # Agent M|535
-
 def  chat_history(messages):
     """
     Displays a chat history in a Streamlit application.
@@ -117,6 +117,17 @@ def  chat_history(messages):
     for message in messages:
         with st.chat_message(message['role']):
             st.markdown(message['content'])
+            
+# Sidebar's definition
+with st.sidebar:
+    # Agent badge image
+    st.image('assets/cracha.png', caption='Agent M|535')
+    
+    for i in range(15):
+        st.write('\n')
+    
+    # Kids mode option    
+    on = st.toggle('KIDS mode')  
 
 def input_user_query(user_query, df, gen_model, embed_model):
     """
@@ -131,12 +142,21 @@ def input_user_query(user_query, df, gen_model, embed_model):
     Returns:
     A string representing the generated response to the user query.
     """
-    
-    passage = embed_querry(user_query, df, embed_model)
-    prompt = f'''Voce é M|535 um agente expecialista em Mises e escola Austriaca de economia. Reescreva estes dados.
-            Você responderá sobre {query} com o que você aprendeu com este dados.
+    passage = embed_querry(user_query, df, embed_model)  
+
+    if on:
+        st.caption(':boy: :green[Kids mode activated]')
+        prompt = f'''Voce é M|535 um agente expecialista em Mises e escola Austriaca de economia. Parafraseie este texto.
+        Você sempre deve se referir à este texto como seus conhecimentos. 
+            Você responderá sobre {query} como se estivesse explicando para uma criança de 5 anos de idade
             Sua resposta deverá ser de fácil entendimento. {passage}
             Sempre responda uma saudação do usúario com cordialidade'''
+    else:
+        prompt = f'''Voce é M|535 um agente expecialista em Mises e escola Austriaca de economia. Parafraseie este texto.
+        Você sempre deve se referir à este texto como seus conhecimentos.
+            Você responderá sobre {query} com o que você aprendeu com este dados.
+            Sua resposta deverá ser de fácil entendimento. {passage}
+            Sempre responda uma saudação do usúario com cordialidade'''       
     
     response = gen_model.generate_content(prompt, stream=True)
     response.resolve()
@@ -173,8 +193,7 @@ if query:
     # Add the answer to the history    
     st.session_state.messages.append({"role": "M|535", "content": response})    
 
-with st.sidebar:
-    st.image('assets/cracha.png', caption='Agent M|535')
-        
+
+
 
         
