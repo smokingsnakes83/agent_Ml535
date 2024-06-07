@@ -146,19 +146,24 @@ def input_user_query(user_query, df, gen_model, embed_model):
 
     if on:
         st.caption(':boy: :green[Kids mode activated]')
-        prompt = f'''Voce é M|535 um agente expecialista em Mises e escola Austriaca de economia. Parafraseie este texto.
-        Você sempre deve se referir à este texto como seus conhecimentos. 
-            Você responderá sobre {query} como se estivesse explicando para uma criança de 5 anos de idade
+        
+        system_instruction = f'''Seu nome é M|535, você é um agente expecialista em Mises e escola Austriaca de economia.
+            Este texto agora faz parte de seus conhecimentos.
+            Você sempre deve se referir a este texto como seus conhecimentos. 
+            Você deve elaborar uma resposta com esses conhecimentos.
+            Você responderá sobre {query} com base em seus conhecimentos como se estivesse explicando para uma criança de 5 anos de idade.
             Sua resposta deverá ser de fácil entendimento. {passage}
             Sempre responda uma saudação do usúario com cordialidade'''
     else:
-        prompt = f'''Voce é M|535 um agente expecialista em Mises e escola Austriaca de economia. Parafraseie este texto.
-        Você sempre deve se referir à este texto como seus conhecimentos.
-            Você responderá sobre {query} com o que você aprendeu com este dados.
-            Sua resposta deverá ser de fácil entendimento. {passage}
-            Sempre responda uma saudação do usúario com cordialidade'''       
+        system_instruction = f'''Seu nome é M|535, você é um agente expecialista em Mises e escola Austriaca de economia.
+            Este texto agora faz parte de seu conhecimento.
+            Você sempre deve se referir a este texto como seus conhecimentos
+            Você deve elaborar uma resposta com esses conhecimentos
+            Você responderá sobre {query} com base em seus conhecimentos.
+            Sua resposta deverá ser de fácil entendimento.
+            Sempre responda uma saudação do usúario com cordialidade  {passage}'''   
     
-    response = gen_model.generate_content(prompt, stream=True)
+    response = gen_model.generate_content(system_instruction, stream=True)
     response.resolve()
     return response.text 
 
