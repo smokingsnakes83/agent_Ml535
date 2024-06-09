@@ -12,7 +12,7 @@ API_KEY = os.getenv('GOOGLE_API_KEY') # 'REPLACE_BY_YOUR_API_HERE'
 genai.configure(api_key=API_KEY) 
 
 # Load the CSV file into a pandas dataframe
-df = pd.read_csv('data_store.csv')
+df = pd.read_csv('knowledge_data.csv')
 # df
 
 # Defining the model in the model variable
