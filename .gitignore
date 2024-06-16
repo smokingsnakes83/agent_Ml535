@@ -1,8 +1,9 @@
 .env
 st_tutorial.py
 bot_sidebar.png
-cracha.png
 articles.ipynb
 Dockerfile
 client_secret.json
 app.yaml
+.streamlit /secrets.toml
+cracha.xcf
