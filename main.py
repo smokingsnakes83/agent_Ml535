@@ -88,7 +88,11 @@ def embed_querry(query, base, model, limit=0.6):
 
 # Model configurations and parameterization
 
-gen_config = {"candidate_count": 1, "temperature": 0.5, "top_p": 0.95}
+gen_config = {
+    "candidate_count": 1, 
+    "temperature": 0.5, 
+    "top_p": 0.95
+}
 
 safety_config = {
     "harassment": "block_none",
@@ -117,29 +121,23 @@ def chat_history(messages):
 
 # Defining the page title and icon
 st.set_page_config(
-    page_title="Agent M|535", page_icon="assets/badge.png", layout="wide"
+    page_title="Agent M|535", page_icon="assets/badge.png", layout="centered"
 )
 
 # Sidebar's definition
 with st.sidebar:
+    
     # Agent badge image
     st.image("assets/badge.png", caption="Agent M|535")
+    
+    # Kids mode button
     with st.container(height=0):
-        # Kids mode button
         on = st.toggle("KIDS mode")
-
-    code = """ 
-        <footer>
-            <div class="footer-content">
-                <p>2024 - SmokingSnakes83</p>
-                <ul>
-                    <li><a href="https://github.com/smokingsnakes83/agent_Ml535" target="_blank"><i class="fab fa-github"></i>GitHub</a></li>
-                </ul>
-            </div>
-        </footer>
-        """
-    st.html(code)
-
+    
+    #logo image    
+    st.container(height=100, border=False)
+    st.image("assets/logo.png", width=200)
+    
 def input_user_query(user_query, df, gen_model, embed_model):
     """
     Processes a user query, embeds it, generates a response using a language model, and returns the response.
@@ -179,17 +177,16 @@ def input_user_query(user_query, df, gen_model, embed_model):
     response.resolve()
     return response.text
 
+# Message history initialization
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-with st.container(height=0):
-    # Message history initialization
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
-
-    # Display message history
-    chat_history(st.session_state.messages)
+# Display message history
+chat_history(st.session_state.messages)
 
 # Capture user query
-query = st.chat_input("Ask Agent M|535")
+
+query = st.chat_input("Ask Agent Mi535")
 
 if query:
     with st.chat_message(name="You"):
@@ -214,3 +211,4 @@ if query:
 
     # Add the answer to the history
     st.session_state.messages.append({"role": "M|535", "content": response})
+
