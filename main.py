@@ -190,7 +190,7 @@ query = st.chat_input("Ask Agent Mi535")
 
 if query:
     with st.chat_message(name="You"):
-        st.markdown(query)
+        st.write(query)
 
     # Add the query to the history
     st.session_state.messages.append({"role": "You", "content": query})
@@ -207,8 +207,7 @@ if query:
 
     # Display the response
     with st.chat_message(avatar="assets/bot.png", name="Agent M|535"):
-        st.markdown(response)
-
+        st.write(response)
     # Add the answer to the history
     st.session_state.messages.append({"role": "M|535", "content": response})
 
