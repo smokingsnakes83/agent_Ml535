@@ -131,12 +131,17 @@ with st.sidebar:
     st.image("assets/badge.png", caption="Agent M|535")
     
     # Kids mode button
-    with st.container(height=0):
-        on = st.toggle("KIDS mode")
+    on = st.toggle("Kids mode", help="Active the kids mode")   
     
-    #logo image    
-    st.container(height=100, border=False)
-    st.image("assets/logo.png", width=200)
+    #Page footer    
+    footer = """
+        <footer style="position: fixed; left: 0; bottom: 0; width: 100%; height: 5%; background-color: #171717; padding: 5px; text-align: center;">
+            <div class="footer-content">
+                <p style="font-size: 0.875em; color: #4c5666; text-align: center;"> Agent Mi535 Especialista em Mises e Escola Austríaca de Economia - 2024 - SmokingSnakes83</p>
+            </div>
+        </footer>
+            """
+    st.markdown(footer, unsafe_allow_html=True)  
     
 def input_user_query(user_query, df, gen_model, embed_model):
     """
@@ -159,7 +164,7 @@ def input_user_query(user_query, df, gen_model, embed_model):
 
         system_instruction = f"""Seu nome é M|535, você é um agente expecialista em Mises e escola Austriaca de economia.
             Este texto agora faz parte de seus conhecimentos.
-            Você sempre deve se referir a este texto como seus conhecimentos. 
+            Você sempre deve seus conhecimentos para responder perguntas do usuário. 
             Você deve elaborar uma resposta com esses conhecimentos.
             Você responderá sobre {query} com base em seus conhecimentos como se estivesse explicando para uma criança de 5 anos de idade.
             Sua resposta deverá ser de fácil entendimento. {passage}
@@ -176,6 +181,7 @@ def input_user_query(user_query, df, gen_model, embed_model):
     response = gen_model.generate_content(system_instruction, stream=True)
     response.resolve()
     return response.text
+    
 
 # Message history initialization
 if "messages" not in st.session_state:
@@ -185,12 +191,11 @@ if "messages" not in st.session_state:
 chat_history(st.session_state.messages)
 
 # Capture user query
-
-query = st.chat_input("Ask Agent Mi535")
+query = st.chat_input("Ask Agent Mi535:")
 
 if query:
     with st.chat_message(name="You"):
-        st.write(query)
+        st.markdown(query)
 
     # Add the query to the history
     st.session_state.messages.append({"role": "You", "content": query})
@@ -207,7 +212,6 @@ if query:
 
     # Display the response
     with st.chat_message(avatar="assets/bot.png", name="Agent M|535"):
-        st.write(response)
+        st.markdown(response)
     # Add the answer to the history
     st.session_state.messages.append({"role": "M|535", "content": response})
-
