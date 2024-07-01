@@ -23,7 +23,7 @@ docker login -u <seu_nome_de_usuario> -p <sua_senha>
 
 - Extraia a imagem do Docker Hub usando o seguinte comando.
 ```bash
-docker pull smokingsnakes83/agent_mises:latest
+docker pull smokingsnakes83/agent-mises
 ```
 - Depois que a imagem for extraída, você pode verificar se ela foi baixada com sucesso executando o seguinte comando:
 ```bash
