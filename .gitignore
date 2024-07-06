@@ -6,3 +6,5 @@ app.yaml
 .streamlit /secrets.toml
 cracha.xcf
 docker_push_steps.txt
+__pycache__/
+base_for_test.csv
