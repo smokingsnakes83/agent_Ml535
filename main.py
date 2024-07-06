@@ -3,7 +3,7 @@ import numpy as np
 import google.generativeai as genai
 import streamlit as st
 import os
-
+import random
 from dotenv import load_dotenv
 
 # Configures the genai library with the obtained API key
@@ -20,6 +20,7 @@ embed_model = "models/embedding-001"
 
 # Load the embeddings
 embeddings = np.load("embeddings.npy", allow_pickle=True)
+
 
 # Function that generates query embeddings
 def embed_query(query, limit=0.7):
@@ -44,7 +45,9 @@ def embed_query(query, limit=0.7):
     idx = np.argmax(dot_products)
 
     # Calculate cosine similarity
-    similarity = dot_products[idx] / (np.linalg.norm(query_embedding) * np.linalg.norm(embeddings[idx]))
+    similarity = dot_products[idx] / (
+        np.linalg.norm(query_embedding) * np.linalg.norm(embeddings[idx])
+    )
 
     # Check if the highest similarity is above the limit
     if similarity >= limit:
@@ -65,11 +68,7 @@ def embed_query(query, limit=0.7):
 
 
 # Model configurations
-gen_config = {
-    "candidate_count": 1, 
-    "temperature": 0.5, 
-    "top_p": 0.7, 
-    "top_k": 25}
+gen_config = {"candidate_count": 1, "temperature": 0.5, "top_p": 0.7, "top_k": 25}
 
 safety_config = {
     "harassment": "block_none",
@@ -97,8 +96,9 @@ def chat_history(messages):
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
+
 # Function that processes a user query and embeds it
-def input_user_query(user_query, gen_model ):
+def input_user_query(user_query, gen_model):
     """
     Processes a user query, embeds it, generates a response using a language model, and returns the response.
 
@@ -142,7 +142,7 @@ st.set_page_config(
 with st.sidebar:
 
     # Agent badge image
-    st.image("assets/badge.png", caption="Agent M|535")
+    st.image("assets/badge.png", caption="Agent Mi535")
 
     # Kids mode button
     on = st.toggle("Kids mode", help="Active the kids mode")
@@ -192,3 +192,84 @@ if query:
         st.markdown(response)
     # Add the answer to the history
     st.session_state.messages.append({"role": "M|535", "content": response})
+    
+#########################################################
+#Start screen
+
+questions_list_1 = [
+    "O que distingue a ação humana do comportamento animal, de acordo com Mises?",
+    "Quais são os pré-requisitos para a ação humana?",
+    "Qual a relação entre a praxeologia e a psicologia?",
+    "O que é o apriorismo e por que Mises o considera fundamental para a economia?",
+    "Explique o princípio do individualismo metodológico.",
+    "Qual o papel da razão na ação humana?",
+    "Como o polilogismo contesta a lógica e a razão?",
+    "Por que a teoria do cálculo econômico é crucial para Mises?",
+    "Quais as principais características da economia de mercado?",
+    "O que é cataláxia?",
+    "Qual a diferença entre bens livres e bens econômicos?",
+    "O que define a utilidade marginal?",
+    "Explique a lei dos rendimentos decrescentes.",
+    "O que distingue o trabalho introvertido do trabalho extrovertido?",
+    "Quais são as fontes de prazer no trabalho?",
+    "Como a economia de mercado funciona em relação ao tempo?",
+    "O que é preferência temporal e qual a sua importância?",
+    "Quais as diferentes formas de poupança e como elas se relacionam com o capital?",
+    "Explique a natureza do juro originário.",
+    "Quais os principais componentes da taxa bruta de juros do mercado?",
+    "Como a expansão do crédito afeta a taxa de juros?",
+    "Como Mises explica a relação entre a oferta de moeda e o poder aquisitivo?",
+    "O que é o teorema da regressão e qual a sua importância?",
+    "Quais os diferentes tipos de moeda e quais as suas características?",
+    "Como Mises analisa o surgimento da moeda fiduciária?",]
+questions_list_2 = [
+    "O que é o padrão-ouro e quais suas vantagens?",
+    "Explique o conceito de ""entesouramento"" e por que Mises o considera um mito.",
+    "Como a intervenção governamental no sistema monetário gera caos?",
+    "O que é o problema do cálculo econômico no socialismo?",
+    "Quais as principais falhas do planejamento centralizado?",
+    "Qual o papel do governo em uma sociedade livre, segundo Mises?",
+    "Explique a falácia da ""economia mista"".",
+    "Quais as consequências do controle de preços?",
+    "Como o intervencionismo leva ao socialismo?",
+    "Quais os diferentes tipos de intervenção fiscal?",
+    "Explique a natureza e os efeitos das medidas restritivas à produção.",
+    "Por que a busca por preços ""justos"" é uma ilusão?",
+    "Quais as características dos preços monopolísticos?",
+    "Qual a diferença entre lucro empresarial e ganho monopolístico?",
+    "Por que Mises considera o sindicalismo um sistema ineficaz e prejudicial?",
+    "Como a doutrina do ""efeito de Ricardo"" é equivocada?",
+    "Qual o papel da especulação em uma economia de mercado?",
+    "Qual o significado do conceito de ""capital"" para Mises?",
+    "Explique a importância da propriedade privada para o funcionamento do livre mercado.",
+    "Por que Mises considera a guerra e o socialismo como sistemas incompatíveis com a liberdade e a prosperidade?",
+    "Quais os principais problemas da ""economia de guerra""?",
+    "Como o intervencionismo governamental gera a mentalidade anticapitalista?",
+    "Quais os principais argumentos em favor da ""estabilização"" e por que Mises os considera falaciosos",
+    "Qual o papel da educação na difusão do pensamento econômico?",
+    "Por que Mises acredita que o estudo da economia é crucial para o futuro da liberdade?"
+    ]
+    
+question_sample_1 = random.choice(questions_list_1)
+question_sample_2 = random.choice(questions_list_2)
+
+if not query:
+    col11, col21, col31 = st.columns(3)
+    with col11:
+        st.container()
+    with col21:
+            st.image("assets/logo.png", width=280)
+    with col31:
+        st.container()
+            
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        with st.container(border=True, height=135):
+            st.markdown("Estou pronto para te ajudar a entender o mundo pela ótica da Escola Austríaca de Economia (EAE).")
+    with col2:
+        with st.container(border=True, height=135):
+            st.write("Pergunte-me:",question_sample_1)
+    with col3:
+        with st.container(border=True, height=135):
+            st.write("Pergunte-me:", question_sample_2)
