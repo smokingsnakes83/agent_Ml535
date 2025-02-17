@@ -215,6 +215,8 @@ questions_list = [
     "Por que Mises acredita que o estudo da economia é crucial para o futuro da liberdade?",
 ]
 questions_samples = random.choice(questions_list)
+questions_samples_2 = random.choice(questions_list)
+questions_samples_3 = random.choice(questions_list)
 
 # Message history initialization
 if "messages" not in st.session_state:
@@ -258,11 +260,15 @@ else:
     col1, col2, col3 = st.columns(3)
     with col1:
         with st.container():
-            st.markdown("")
+            st.columns(spec=1)
+            st.markdown(questions_samples)  
     with col2:
         with st.container():
-            st.image("assets/logo.png", caption=questions_samples)
+            st.image("assets/logo.png") # caption=f"Sugestões: {questions_samples}"
+            st.markdown(questions_samples_2)  
     with col3:
         with st.container():
-            st.markdown("")                
+            st.columns(spec=1, gap="medium", )
+            st.markdown(questions_samples_3)  
+                    
             
