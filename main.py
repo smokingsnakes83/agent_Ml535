@@ -5,24 +5,55 @@ import streamlit as st
 import os
 import random
 from dotenv import load_dotenv
+from openai import OpenAI
 
-# Configures the genai library with the obtained API key
+### Configures the genai library with the obtained API key ###
 load_dotenv()
+XAI_API_KEY = os.getenv("XAI_API_KEY") # 'REPLACE_BY_YOUR_API_HERE'
 API_KEY = os.getenv("GOOGLE_API_KEY")  # 'REPLACE_BY_YOUR_API_HERE'
 genai.configure(api_key=API_KEY)
 
-# Load the CSV file into a pandas dataframe
+### Defining the page title and icon ###
+st.set_page_config(
+    page_title="Agent M|535", page_icon="assets/badge.png", layout="centered"
+)
+
+### Load the CSV file into a pandas dataframe ###
 knowledge_base = pd.read_csv("knowledge_base.csv")
 
 
-# Defining the model in the model variable
-embed_model = "models/embedding-001"
+### Defining the model in the model variable ###
+embed_model = "models/text-embedding-004"
 
-# Load the embeddings
-embeddings = np.load("embeddings.npy", allow_pickle=True)
+### Load the embeddings ###
+# embeddings = np.load("embeddings.npy", allow_pickle=True)
 
+### Embeddings generator function ###
+@st.cache_data(persist=True)
+def embed_doc(title, content):
 
-# Function that generates query embeddings
+    ''''
+    Generates embeddings for documents using the specified template.
+
+    Args:
+        title: The title of the document.
+        content: The body of the document's content.
+
+    Returns:
+        An embedding vector representing the document.
+    '''
+    embedding = genai.embed_content(model=embed_model,
+                             content=content,
+                             task_type='retrieval_document',
+                             title=title)['embedding']
+
+    return embedding
+
+knowledge_base['Embeddings'] = knowledge_base.apply(lambda row: embed_doc(row['Title'], row['Content']), axis=1)
+
+embeddings = knowledge_base['Embeddings'].values
+
+### Function that generates query embeddings ###
 def embed_query(query, limit=0.7):
     """
     Generates a semantic query and returns the corresponding information in the dataframe.
@@ -38,8 +69,7 @@ def embed_query(query, limit=0.7):
     """
 
     query_embedding = genai.embed_content(
-        model=embed_model, content=query, task_type="retrieval_query"
-    )["embedding"]
+        model=embed_model, content=query, task_type="retrieval_query")["embedding"]
 
     dot_products = np.dot(np.stack(embeddings), query_embedding)
     idx = np.argmax(dot_products)
@@ -54,20 +84,22 @@ def embed_query(query, limit=0.7):
         print(f"\nsimilarity: {similarity}")
         return knowledge_base.iloc[idx]["Content"]
 
-    elif similarity > 0.65:
+    elif similarity > 0.60:
         print(f"\nsimilarity: {similarity}")
         prompt = f"""Responda sobre {query} pela ótica de Mises e da Escola Austriaca de Economia.
                     Sugira perguntas relacionadas a Escola Austriaca de Economia"""
         return prompt
 
-    else:
+    elif similarity < 60:
         print(f"\nsimilarity: {similarity}")
-        prompt = f"""Diga que o assunto sobre {query} está alem do seu conhecimento.
-                    Sugira perguntas relacionadas a Escola Austriaca de Econoima"""
+        prompt = f"""Você deve dizer: Este assunto sobre {query} está alem do seu conhecimento.
+                    Você deve sugerir perguntas relacionadas a Escola Austriaca de Economia para envolver o usuário no assunto
+                    Você deve sugerir sites relacionado a {query} ao usuário para que ele posso se informar 
+                    """
         return prompt
 
 
-# Model configurations
+### Gemini model configurations ###
 gen_config = {"candidate_count": 1, "temperature": 0.5, "top_p": 0.7, "top_k": 25}
 
 safety_config = {
@@ -80,8 +112,7 @@ safety_config = {
 #######################################################################
 # Agent M|535
 
-
-# Function that displays a chat history in a Streamlit application.
+### Function that displays a chat history in a Streamlit application ###
 def chat_history(messages):
     """
     Displays a chat history in a Streamlit application.
@@ -97,22 +128,57 @@ def chat_history(messages):
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
+### Sidebar layout definition ###
+with st.sidebar:
 
-# Function that processes a user query and embeds it
-def input_user_query(user_query, gen_model):
+    # Agent badge image
+    st.image("assets/badge.png", caption="Agent Mi535")
+
+    # Kids mode button
+    on = st.toggle("Kids mode", help="Active the kids mode")
+
+    models_choice = st.radio(label="Models", options=["gemini-2.0-flash", "grok-2-1212"])
+
+    if models_choice == "gemini":
+        llm = genai.GenerativeModel(
+        "gemini-2.0-flash",
+        generation_config=gen_config,
+        safety_settings=safety_config,
+        system_instruction="""Voce é um agente expecialista em Mises e escola Austriaca de economia, seu nome é M|535
+                            Este conteúdo é o seu conhecimento sobre Mises e a Escola Austríaca de Economia.
+                            Você sempre deve saudar o usuário""",
+    )
+    if models_choice == "grok":
+        llm = OpenAI(
+        api_key=XAI_API_KEY,
+        base_url="https://api.x.ai/v1",
+    )
+    
+    # Page footer
+    footer = """
+        <footer style="position: fixed; left: 0; bottom: 0; width: 20%; height: 5%;  padding: 4px; text-align: left;">
+            <div class="footer-content">
+                <p style="font-size: 0.875em; color: #4c5666; text-align: left;">Agent M|535 by SmokingSnakes83</p>
+            </div>
+        </footer>
+            """
+    st.markdown(footer, unsafe_allow_html=True)
+
+### Function that processes a user query and embeds it ###
+def input_user_query(user_query, model):
     """
     Processes a user query, embeds it, generates a response using a language model, and returns the response.
 
     Args:
     user_query: The user's input query as a string.
-    gen_model: A language model object capable of generating text.
+    model: A language model object capable of generating text.
 
     Returns:
     A string representing the generated response to the user query.
     """
     passage = embed_query(user_query)
 
-    # Conditional for kids mode activation
+    ### Conditional for kids mode activation ###
     if on:
         st.caption(":boy: :green[Kids mode activated]")
 
@@ -130,103 +196,50 @@ def input_user_query(user_query, gen_model):
 
             {passage}"""
 
-    response = gen_model.generate_content(prompt)
-    return response.text
+    ### Response of models ###        
+    if models_choice in "gemini-2.0-flash":
+        response = model.generate_content(prompt)
+        return response.text
+
+    if models_choice in "grok-2-1212":
+        response = model.chat.completions.create(
+        model="grok-2-1212",
+        messages=[
+            {"role": "user", "content": prompt}
+        ],
+        )
+        return response.choices[0].message.content
 
 
-# Defining the page title and icon
-st.set_page_config(
-    page_title="Agent M|535", page_icon="assets/badge.png", layout="centered"
-)
+### List of suggested questions ###
+from modules import suggestion_questions
+questions = suggestion_questions.questions_list
+questions_samples = random.choice(questions)
 
-# Sidebar's definition
-with st.sidebar:
+#########################################################
+### Start screen ###
 
-    # Agent badge image
-    st.image("assets/badge.png", caption="Agent Mi535")
-
-    # Kids mode button
-    on = st.toggle("Kids mode", help="Active the kids mode")
-
-    # Page footer
-    footer = """
-        <footer style="position: fixed; left: 0; bottom: 0; width: 20%; height: 5%;  padding: 4px; text-align: left;">
-            <div class="footer-content">
-                <p style="font-size: 0.875em; color: #4c5666; text-align: left;">Agent M|535 by SmokingSnakes83</p>
-            </div>
-        </footer>
-            """
-    st.markdown(footer, unsafe_allow_html=True)
+col1, col2, col3 = st.columns(3)
+with col1:
+     with st.container():
+        st.columns(spec=1)
+with col2:
+     with st.container():
+        st.image("assets/logo.png")
+with col3:
+    with st.container():
+        st.columns(spec=1)         
 
 
-# List of suggested questions
-questions_list = [
-    "O que distingue a ação humana do comportamento animal, de acordo com Mises?",
-    "Quais são os pré-requisitos para a ação humana?",
-    "Qual a relação entre a praxeologia e a psicologia?",
-    "O que é o apriorismo e por que Mises o considera fundamental para a economia?",
-    "Explique o princípio do individualismo metodológico.",
-    "Qual o papel da razão na ação humana?",
-    "Como o polilogismo contesta a lógica e a razão?",
-    "Por que a teoria do cálculo econômico é crucial para Mises?",
-    "Quais as principais características da economia de mercado?",
-    "O que é cataláxia?",
-    "Qual a diferença entre bens livres e bens econômicos?",
-    "O que define a utilidade marginal?",
-    "Explique a lei dos rendimentos decrescentes.",
-    "O que distingue o trabalho introvertido do trabalho extrovertido?",
-    "Quais são as fontes de prazer no trabalho?",
-    "Como a economia de mercado funciona em relação ao tempo?",
-    "O que é preferência temporal e qual a sua importância?",
-    "Quais as diferentes formas de poupança e como elas se relacionam com o capital?",
-    "Explique a natureza do juro originário.",
-    "Quais os principais componentes da taxa bruta de juros do mercado?",
-    "Como a expansão do crédito afeta a taxa de juros?",
-    "Como Mises explica a relação entre a oferta de moeda e o poder aquisitivo?",
-    "O que é o teorema da regressão e qual a sua importância?",
-    "Quais os diferentes tipos de moeda e quais as suas características?",
-    "Como Mises analisa o surgimento da moeda fiduciária?",
-    "O que é o padrão-ouro e quais suas vantagens?",
-    "Explique o conceito de " "entesouramento" " e por que Mises o considera um mito.",
-    "Como a intervenção governamental no sistema monetário gera caos?",
-    "O que é o problema do cálculo econômico no socialismo?",
-    "Quais as principais falhas do planejamento centralizado?",
-    "Qual o papel do governo em uma sociedade livre, segundo Mises?",
-    "Explique a falácia da " "economia mista" ".",
-    "Quais as consequências do controle de preços?",
-    "Como o intervencionismo leva ao socialismo?",
-    "Quais os diferentes tipos de intervenção fiscal?",
-    "Explique a natureza e os efeitos das medidas restritivas à produção.",
-    "Por que a busca por preços " "justos" " é uma ilusão?",
-    "Quais as características dos preços monopolísticos?",
-    "Qual a diferença entre lucro empresarial e ganho monopolístico?",
-    "Por que Mises considera o sindicalismo um sistema ineficaz e prejudicial?",
-    "Como a doutrina do " "efeito de Ricardo" " é equivocada?",
-    "Qual o papel da especulação em uma economia de mercado?",
-    "Qual o significado do conceito de " "capital" " para Mises?",
-    "Explique a importância da propriedade privada para o funcionamento do livre mercado.",
-    "Por que Mises considera a guerra e o socialismo como sistemas incompatíveis com a liberdade e a prosperidade?",
-    "Quais os principais problemas da " "economia de guerra" "?",
-    "Como o intervencionismo governamental gera a mentalidade anticapitalista?",
-    "Quais os principais argumentos em favor da "
-    "estabilização"
-    " e por que Mises os considera falaciosos",
-    "Qual o papel da educação na difusão do pensamento econômico?",
-    "Por que Mises acredita que o estudo da economia é crucial para o futuro da liberdade?",
-]
-questions_samples = random.choice(questions_list)
-questions_samples_2 = random.choice(questions_list)
-questions_samples_3 = random.choice(questions_list)
-
-# Message history initialization
+### Message history initialization ###
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
 # Display message history
 chat_history(st.session_state.messages)
 
-# Capture user query
-query = st.chat_input("Pergunte ao Mi535")
+### Capture user query ###
+query = st.chat_input(placeholder=questions_samples)
 
 if query:
     with st.chat_message(name="You"):
@@ -234,41 +247,29 @@ if query:
 
     # Add the query to the history
     st.session_state.messages.append({"role": "You", "content": query})
+    
+    ### Configure the generative model ###
+    # model = genai.GenerativeModel(
+    #     "gemini-2.0-flash",
+    #     generation_config=gen_config,
+    #     safety_settings=safety_config,
+    #     system_instruction="""Voce é um agente expecialista em Mises e escola Austriaca de economia, seu nome é M|535
+    #                         Este conteúdo é o seu conhecimento sobre Mises e a Escola Austríaca de Economia.
+    #                         Você sempre deve saudar o usuário""",
+    # )
+    llm = llm
+    # model = OpenAI(
+    # api_key=XAI_API_KEY,
+    # base_url="https://api.x.ai/v1",
+# )
 
-    # Configure the generative model
-    gen_model = genai.GenerativeModel(
-        "gemini-1.5-flash",
-        generation_config=gen_config,
-        safety_settings=safety_config,
-        system_instruction="""Voce é um agente expecialista em Mises e escola Austriaca de economia, seu nome é M|535
-                            Este conteúdo é o seu conhecimento sobre Mises e a Escola Austríaca de Economia.
-                            Você sempre deve saudar o usuário""",
-    )
 
-    # Process the query and get the response
-    response = input_user_query(query, gen_model)
+    ### Process the query and get the response ###
+    response = input_user_query(query, llm)
 
-    # Display the response
+    #### Display the response ###
     with st.chat_message(avatar="assets/bot.png", name="Agent M|535"):
         st.markdown(response)
     # Add the answer to the history
     st.session_state.messages.append({"role": "M|535", "content": response})
 
-#########################################################
-# Start screen
-else:
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        with st.container():
-            st.columns(spec=1)
-            st.markdown(questions_samples)  
-    with col2:
-        with st.container():
-            st.image("assets/logo.png") # caption=f"Sugestões: {questions_samples}"
-            st.markdown(questions_samples_2)  
-    with col3:
-        with st.container():
-            st.columns(spec=1, gap="medium", )
-            st.markdown(questions_samples_3)  
-                    
-            
