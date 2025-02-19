@@ -84,13 +84,13 @@ def embed_query(query, limit=0.7):
         print(f"\nsimilarity: {similarity}")
         return knowledge_base.iloc[idx]["Content"]
 
-    elif similarity > 0.60:
+    elif similarity > 0.55:
         print(f"\nsimilarity: {similarity}")
         prompt = f"""Responda sobre {query} pela ótica de Mises e da Escola Austriaca de Economia.
                     Sugira perguntas relacionadas a Escola Austriaca de Economia"""
         return prompt
 
-    elif similarity < 60:
+    else:
         print(f"\nsimilarity: {similarity}")
         prompt = f"""Você deve dizer: Este assunto sobre {query} está alem do seu conhecimento.
                     Você deve sugerir perguntas relacionadas a Escola Austriaca de Economia para envolver o usuário no assunto
@@ -132,23 +132,29 @@ def chat_history(messages):
 with st.sidebar:
 
     # Agent badge image
-    st.image("assets/badge.png", caption="Agent Mi535")
+    st.image("assets/badge.jpeg", caption="Agent Mi535")
 
     # Kids mode button
     on = st.toggle("Kids mode", help="Active the kids mode")
 
-    models_choice = st.radio(label="Models", options=["gemini-2.0-flash", "grok-2-1212"])
+    models_choice = st.radio(label="Models", options=["gemini-2.0-flash-thinking-exp-01-21", "gemini-2.0-flash", "grok-2-1212"])
 
-    if models_choice == "gemini":
+    if models_choice == "gemini-2.0-flash-thinking-exp-01-21":
+        llm = genai.GenerativeModel(
+        "gemini-2.0-flash-thinking-exp-01-21",
+        generation_config=gen_config,
+        safety_settings=safety_config,
+        system_instruction="""Voce é um agente expecialista em Mises e escola Austriaca de economia, seu nome é M|535
+                            Você sempre deve saudar o usuário""",
+    )
+    if models_choice == "gemini-2.0-flash":
         llm = genai.GenerativeModel(
         "gemini-2.0-flash",
         generation_config=gen_config,
         safety_settings=safety_config,
-        system_instruction="""Voce é um agente expecialista em Mises e escola Austriaca de economia, seu nome é M|535
-                            Este conteúdo é o seu conhecimento sobre Mises e a Escola Austríaca de Economia.
-                            Você sempre deve saudar o usuário""",
+        system_instruction="Voce é um agente expecialista em Mises e escola Austriaca de economia, seu nome é M|535"
     )
-    if models_choice == "grok":
+    if models_choice == "grok-2-1212":
         llm = OpenAI(
         api_key=XAI_API_KEY,
         base_url="https://api.x.ai/v1",
@@ -205,6 +211,7 @@ def input_user_query(user_query, model):
         response = model.chat.completions.create(
         model="grok-2-1212",
         messages=[
+            {"role": "system", "content": "Voce é um agente expecialista em Mises e escola Austriaca de economia, seu nome é M|535"},
             {"role": "user", "content": prompt}
         ],
         )
@@ -213,8 +220,8 @@ def input_user_query(user_query, model):
 
 ### List of suggested questions ###
 from modules import suggestion_questions
-questions = suggestion_questions.questions_list
-questions_samples = random.choice(questions)
+suggestion = suggestion_questions.questions_list
+questions_samples = random.choice(suggestion)
 
 #########################################################
 ### Start screen ###
@@ -239,7 +246,7 @@ if "messages" not in st.session_state:
 chat_history(st.session_state.messages)
 
 ### Capture user query ###
-query = st.chat_input(placeholder=questions_samples)
+query = st.chat_input(placeholder="Faça sua pergunta")
 
 if query:
     with st.chat_message(name="You"):
@@ -248,22 +255,8 @@ if query:
     # Add the query to the history
     st.session_state.messages.append({"role": "You", "content": query})
     
-    ### Configure the generative model ###
-    # model = genai.GenerativeModel(
-    #     "gemini-2.0-flash",
-    #     generation_config=gen_config,
-    #     safety_settings=safety_config,
-    #     system_instruction="""Voce é um agente expecialista em Mises e escola Austriaca de economia, seu nome é M|535
-    #                         Este conteúdo é o seu conhecimento sobre Mises e a Escola Austríaca de Economia.
-    #                         Você sempre deve saudar o usuário""",
-    # )
     llm = llm
-    # model = OpenAI(
-    # api_key=XAI_API_KEY,
-    # base_url="https://api.x.ai/v1",
-# )
-
-
+ 
     ### Process the query and get the response ###
     response = input_user_query(query, llm)
 
@@ -272,4 +265,3 @@ if query:
         st.markdown(response)
     # Add the answer to the history
     st.session_state.messages.append({"role": "M|535", "content": response})
-
